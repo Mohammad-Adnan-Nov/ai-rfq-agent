@@ -1,0 +1,14 @@
+pandas
+openpyxl
+python-dotenv
+pydantic
+pydantic-settings
+sqlalchemy
+pyodbc
+fastapi
+uvicorn
+streamlit
+openai
+qdrant-client
+langgraph
+mlflow

@@ -1,0 +1,17 @@
+[project]
+name = "ai-rfq-agent"
+version = "0.1.0"
+description = "AI-assisted RFQ retrieval and Fishing Tool part-number matching system."
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true

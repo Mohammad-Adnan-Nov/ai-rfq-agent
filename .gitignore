@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Data - never commit raw or processed confidential data
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Local outputs
+*.log
+logs/
+reports/
+outputs/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# MLflow local artifacts
+mlruns/
+mlartifacts/
+
+# Qdrant local storage
+qdrant_storage/
+
+# Excel temporary files
+~$*.xlsx
+~$*.xlsm
