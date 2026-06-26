@@ -228,7 +228,7 @@ def build_item_records_outputs(
             records_df["invalid_reason"] != "",
             "invalid_reason",
         ]
-        .value_counts()
+        .value_counts() # type: ignore
         .items()
     }
 
@@ -236,7 +236,7 @@ def build_item_records_outputs(
         records_df.loc[
             records_df["part_number_normalized"] != "",
             "part_number_normalized",
-        ].duplicated().sum()
+        ].duplicated().sum() # type: ignore
     )
 
     sample_records = (
@@ -255,7 +255,7 @@ def build_item_records_outputs(
         ]
         .head(sample_limit)
         .to_dict(orient="records")
-    )
+    ) # type: ignore
 
     result = ItemRecordsBuildResult(
         pricebook_version=pricebook_version,
