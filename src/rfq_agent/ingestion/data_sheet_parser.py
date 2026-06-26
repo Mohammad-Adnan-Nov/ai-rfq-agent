@@ -116,7 +116,7 @@ def detect_header_row(
 
         if score > best_score:
             best_score = score
-            best_row_index = int(row_index)
+            best_row_index = int(row_index) # type: ignore
 
     return best_row_index
 
@@ -156,7 +156,7 @@ def read_data_sheet(
         [str(first_data_excel_row_number + row_index) for row_index in range(len(df))],
     )
 
-    return df, header_row_index
+    return df, header_row_index # type: ignore
 
 
 def build_data_sheet_preview(
@@ -196,7 +196,7 @@ def build_data_sheet_preview(
         df[available_preview_columns]
         .head(preview_limit)
         .to_dict(orient="records")
-    )
+    ) # type: ignore
 
     return DataSheetPreview(
         workbook_path=str(workbook_path),
