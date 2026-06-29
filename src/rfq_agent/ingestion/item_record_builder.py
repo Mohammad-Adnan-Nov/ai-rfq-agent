@@ -42,8 +42,11 @@ OUTPUT_COLUMNS = [
     "overshot_od",
     "size",
     "total_length",
+    "diameter_largest_wicker",
+    "diameter_smallest_wicker",
     "catch_size",
     "nominal_size_or_catch_size",
+    "assembly_dressed_to_packoff",
     "shoe_od",
     "hole_size",
     "inside_diameter",
@@ -136,8 +139,12 @@ def build_search_text(row: dict[str, str]) -> str:
     add_search_field(parts, "Complete Assembly Number", row.get("complete_assembly_number", ""))
     add_search_field(parts, "Overshot OD", row.get("overshot_od", ""))
     add_search_field(parts, "Size", row.get("size", ""))
+    add_search_field(parts, "Total Length", row.get("total_length", ""))
+    add_search_field(parts, "Diameter of Largest Wicker", row.get("diameter_largest_wicker", ""))
+    add_search_field(parts, "Diameter of Smallest Wicker", row.get("diameter_smallest_wicker", ""))
     add_search_field(parts, "Catch Size", row.get("catch_size", ""))
     add_search_field(parts, "Nominal Size/Catch Size", row.get("nominal_size_or_catch_size", ""))
+    add_search_field(parts, "Assembly Dressed to Packoff", row.get("assembly_dressed_to_packoff", ""))
     add_search_field(parts, "Shoe OD", row.get("shoe_od", ""))
     add_search_field(parts, "Hole Size", row.get("hole_size", ""))
     add_search_field(parts, "Inside Diameter", row.get("inside_diameter", ""))
@@ -177,9 +184,14 @@ def build_item_records_dataframe(
             "overshot_od": clean_text(source_row.get("Overshot OD", "")),
             "size": clean_text(source_row.get("Size", "")),
             "total_length": clean_text(source_row.get("Total Length", "")),
+            "diameter_largest_wicker": clean_text(source_row.get("Diameter of Largest Wicker", "")),
+            "diameter_smallest_wicker": clean_text(source_row.get("Diameter of Smallest Wicker", "")),
             "catch_size": clean_text(source_row.get("Catch Size", "")),
             "nominal_size_or_catch_size": clean_text(
                 source_row.get("Nominal Size/Nominal Catch Size", "")
+            ),
+            "assembly_dressed_to_packoff": clean_text(
+                source_row.get("Assembly dressed to packoff", "")
             ),
             "shoe_od": clean_text(source_row.get("Shoe OD", "")),
             "hole_size": clean_text(source_row.get("Hole Size", "")),
@@ -228,7 +240,7 @@ def build_item_records_outputs(
             records_df["invalid_reason"] != "",
             "invalid_reason",
         ]
-        .value_counts() # type: ignore
+        .value_counts()
         .items()
     }
 
@@ -236,7 +248,7 @@ def build_item_records_outputs(
         records_df.loc[
             records_df["part_number_normalized"] != "",
             "part_number_normalized",
-        ].duplicated().sum() # type: ignore
+        ].duplicated().sum()
     )
 
     sample_records = (
@@ -255,7 +267,7 @@ def build_item_records_outputs(
         ]
         .head(sample_limit)
         .to_dict(orient="records")
-    ) # type: ignore
+    )
 
     result = ItemRecordsBuildResult(
         pricebook_version=pricebook_version,
@@ -270,7 +282,7 @@ def build_item_records_outputs(
         invalid_reason_counts=invalid_reason_counts,
         output_csv_path=str(output_csv_path),
         quality_report_path=str(quality_report_path),
-        sample_records=sample_records, # type: ignore
+        sample_records=sample_records, #type:ignore
     )
 
     quality_report_path.write_text(

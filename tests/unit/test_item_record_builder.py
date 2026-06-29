@@ -52,6 +52,37 @@ def test_search_text_excludes_placeholder_values():
     assert "Logan Part Number: N/A" not in search_text
 
 
+def test_search_text_includes_technical_attributes():
+    row = {
+        "part_number": "12345",
+        "description": "Sample Grapple",
+        "title": "Sample Tool",
+        "section_number": "2000",
+        "sheet_number": "10",
+        "total_length": "12.50",
+        "diameter_largest_wicker": "5.25",
+        "diameter_smallest_wicker": "4.75",
+        "catch_size": "5",
+        "nominal_size_or_catch_size": "5 7/8",
+        "assembly_dressed_to_packoff": "Yes",
+        "shoe_od": "6.125",
+        "hole_size": "8.5",
+        "inside_diameter": "3.25",
+    }
+
+    search_text = build_search_text(row)
+
+    assert "Total Length: 12.50" in search_text
+    assert "Diameter of Largest Wicker: 5.25" in search_text
+    assert "Diameter of Smallest Wicker: 4.75" in search_text
+    assert "Catch Size: 5" in search_text
+    assert "Nominal Size/Catch Size: 5 7/8" in search_text
+    assert "Assembly Dressed to Packoff: Yes" in search_text
+    assert "Shoe OD: 6.125" in search_text
+    assert "Hole Size: 8.5" in search_text
+    assert "Inside Diameter: 3.25" in search_text
+
+
 def test_build_item_records_dataframe_from_sample_workbook(tmp_path: Path):
     workbook_path = tmp_path / "sample_pricebook.xlsx"
 
@@ -68,12 +99,15 @@ def test_build_item_records_dataframe_from_sample_workbook(tmp_path: Path):
                 "Logan Description": "",
                 "Size": "",
                 "Complete Assembly Number": "9790",
-                "Total Length": "",
-                "Catch Size": "",
-                "Nominal Size/Nominal Catch Size": "",
-                "Shoe OD": "",
-                "Hole Size": "",
-                "Inside Diameter": "",
+                "Total Length": "10.5",
+                "Diameter of Largest Wicker": "5.25",
+                "Diameter of Smallest Wicker": "4.75",
+                "Catch Size": "5",
+                "Nominal Size/Nominal Catch Size": "5 7/8",
+                "Assembly dressed to packoff": "Yes",
+                "Shoe OD": "6.125",
+                "Hole Size": "8.5",
+                "Inside Diameter": "3.25",
             },
             {
                 "Sheet #": "1",
@@ -87,8 +121,11 @@ def test_build_item_records_dataframe_from_sample_workbook(tmp_path: Path):
                 "Size": "",
                 "Complete Assembly Number": "9790",
                 "Total Length": "",
+                "Diameter of Largest Wicker": "",
+                "Diameter of Smallest Wicker": "",
                 "Catch Size": "",
                 "Nominal Size/Nominal Catch Size": "",
+                "Assembly dressed to packoff": "",
                 "Shoe OD": "",
                 "Hole Size": "",
                 "Inside Diameter": "",
@@ -105,8 +142,11 @@ def test_build_item_records_dataframe_from_sample_workbook(tmp_path: Path):
                 "Size": "",
                 "Complete Assembly Number": "9790",
                 "Total Length": "",
+                "Diameter of Largest Wicker": "",
+                "Diameter of Smallest Wicker": "",
                 "Catch Size": "",
                 "Nominal Size/Nominal Catch Size": "",
+                "Assembly dressed to packoff": "",
                 "Shoe OD": "",
                 "Hole Size": "",
                 "Inside Diameter": "",
@@ -130,6 +170,14 @@ def test_build_item_records_dataframe_from_sample_workbook(tmp_path: Path):
     assert first_record["source_sheet"] == "Data"
     assert first_record["source_row_number"] == "2"
     assert first_record["is_valid_candidate"] == "true"
+    assert first_record["total_length"] == "10.5"
+    assert first_record["diameter_largest_wicker"] == "5.25"
+    assert first_record["diameter_smallest_wicker"] == "4.75"
+    assert first_record["assembly_dressed_to_packoff"] == "Yes"
+    assert "Total Length: 10.5" in first_record["search_text"]
+    assert "Diameter of Largest Wicker: 5.25" in first_record["search_text"]
+    assert "Diameter of Smallest Wicker: 4.75" in first_record["search_text"]
+    assert "Assembly Dressed to Packoff: Yes" in first_record["search_text"]
     assert "Logan Part Number: N/A" not in first_record["search_text"]
 
     placeholder_record = records_df.iloc[2]
