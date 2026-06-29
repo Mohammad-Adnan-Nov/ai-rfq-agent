@@ -5,12 +5,6 @@ Phase 1 SQL DDL Draft
 Purpose:
 Create SQL Server tables for approved Fishing Tool pricebook data.
 
-Important governance rules:
-- SQL Server is the source of truth.
-- Part numbers must be stored as text.
-- Qdrant is only semantic retrieval.
-- OpenAI must not invent part numbers.
-- RFQ runtime tables are not included in this migration.
 */
 
 SET ANSI_NULLS ON;
