@@ -138,3 +138,51 @@ Run a connection preflight against:
 ```
 
 Then create a local development database for this project.
+
+## sqlcmd Check Result
+
+Command:
+
+```powershell
+Get-Command sqlcmd -ErrorAction SilentlyContinue
+where.exe sqlcmd
+```
+
+Observed result:
+
+```text
+SQLCMD.EXE found at:
+C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\SQLCMD.EXE
+```
+
+Interpretation:
+
+`sqlcmd` is installed and available from PowerShell.
+
+This means we can execute SQL Server preflight commands and later run the local DDL test from PowerShell.
+
+## Selected Local SQL Server Target
+
+The selected first SQL execution target is:
+
+```text
+.\SQLEXPRESS
+```
+
+Reason:
+
+- SQL Server Express is installed locally.
+- SQL Server Express service is running.
+- LocalDB is not available.
+- sqlcmd is available.
+- This avoids touching production or shared NOV SQL Server environments.
+
+## Current Execution Decision
+
+```text
+Do not run the SQL DDL yet.
+```
+
+Next step:
+
+Run a connection preflight against `.\SQLEXPRESS`, then create a local development database.
