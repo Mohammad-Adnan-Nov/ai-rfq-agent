@@ -5,6 +5,11 @@ Phase 1 SQL DDL Draft
 Purpose:
 Create SQL Server tables for approved Fishing Tool pricebook data.
 
+Important governance rules:
+- RFQ runtime tables are not included in this migration.
+
+Status:
+Reviewed and corrected before first SQL Server execution.
 */
 
 SET ANSI_NULLS ON;
@@ -60,9 +65,9 @@ CREATE TABLE dbo.pricebook_items (
     pricebook_version_id BIGINT NOT NULL,
     section_id BIGINT NULL,
     part_id BIGINT NOT NULL,
-    description NVARCHAR(500) NULL,
+    description NVARCHAR(1000) NULL,
     logan_part_number NVARCHAR(100) NULL,
-    logan_description NVARCHAR(500) NULL,
+    logan_description NVARCHAR(1000) NULL,
     complete_assembly_number NVARCHAR(100) NULL,
     is_valid_candidate BIT NOT NULL CONSTRAINT DF_pricebook_items_is_valid_candidate DEFAULT (1),
     invalid_reason NVARCHAR(100) NULL,
@@ -80,7 +85,9 @@ CREATE TABLE dbo.pricebook_items (
         REFERENCES dbo.pricebook_sections(section_id),
     CONSTRAINT FK_pricebook_items_parts
         FOREIGN KEY (part_id)
-        REFERENCES dbo.parts(part_id)
+        REFERENCES dbo.parts(part_id),
+    CONSTRAINT UQ_pricebook_items_source_row
+        UNIQUE (pricebook_version_id, source_workbook, source_sheet, source_row_number)
 );
 GO
 
@@ -100,8 +107,8 @@ CREATE TABLE dbo.item_attributes (
     item_attribute_id BIGINT IDENTITY(1,1) NOT NULL,
     pricebook_item_id BIGINT NOT NULL,
     attribute_definition_id BIGINT NOT NULL,
-    attribute_value_text NVARCHAR(255) NOT NULL,
-    attribute_value_normalized NVARCHAR(255) NULL,
+    attribute_value_text NVARCHAR(500) NOT NULL,
+    attribute_value_normalized NVARCHAR(500) NULL,
     created_at DATETIME2 NOT NULL CONSTRAINT DF_item_attributes_created_at DEFAULT SYSUTCDATETIME(),
 
     CONSTRAINT PK_item_attributes PRIMARY KEY (item_attribute_id),
@@ -110,9 +117,7 @@ CREATE TABLE dbo.item_attributes (
         REFERENCES dbo.pricebook_items(pricebook_item_id),
     CONSTRAINT FK_item_attributes_attribute_definitions
         FOREIGN KEY (attribute_definition_id)
-        REFERENCES dbo.attribute_definitions(attribute_definition_id),
-    CONSTRAINT UQ_item_attributes_item_attribute_value
-        UNIQUE (pricebook_item_id, attribute_definition_id, attribute_value_text)
+        REFERENCES dbo.attribute_definitions(attribute_definition_id)
 );
 GO
 
@@ -148,7 +153,9 @@ CREATE TABLE dbo.ingestion_runs (
     CONSTRAINT PK_ingestion_runs PRIMARY KEY (ingestion_run_id),
     CONSTRAINT FK_ingestion_runs_pricebook_versions
         FOREIGN KEY (pricebook_version_id)
-        REFERENCES dbo.pricebook_versions(pricebook_version_id)
+        REFERENCES dbo.pricebook_versions(pricebook_version_id),
+    CONSTRAINT CK_ingestion_runs_status
+        CHECK (status IN ('started', 'success', 'failed'))
 );
 GO
 
@@ -182,7 +189,17 @@ CREATE TABLE dbo.part_relationships (
         REFERENCES dbo.pricebook_items(pricebook_item_id),
     CONSTRAINT FK_part_relationships_child_items
         FOREIGN KEY (child_pricebook_item_id)
-        REFERENCES dbo.pricebook_items(pricebook_item_id)
+        REFERENCES dbo.pricebook_items(pricebook_item_id),
+    CONSTRAINT CK_part_relationships_confidence_level
+        CHECK (confidence_level IN ('derived', 'verified', 'manual')),
+    CONSTRAINT CK_part_relationships_no_self_reference
+        CHECK (parent_part_id <> child_part_id),
+    CONSTRAINT CK_part_relationships_no_same_pricebook_item
+        CHECK (
+            parent_pricebook_item_id IS NULL
+            OR child_pricebook_item_id IS NULL
+            OR parent_pricebook_item_id <> child_pricebook_item_id
+    )
 );
 GO
 
@@ -221,8 +238,8 @@ CREATE TABLE dbo.item_aliases (
 );
 GO
 
-CREATE INDEX IX_parts_part_number_normalized
-ON dbo.parts(part_number_normalized);
+CREATE INDEX IX_pricebook_sections_version_section
+ON dbo.pricebook_sections(pricebook_version_id, section_number);
 GO
 
 CREATE INDEX IX_pricebook_items_valid_candidate
@@ -253,12 +270,53 @@ CREATE INDEX IX_part_relationships_child_part
 ON dbo.part_relationships(child_part_id);
 GO
 
+CREATE UNIQUE INDEX UX_part_relationships_context
+ON dbo.part_relationships(
+    pricebook_version_id,
+    parent_part_id,
+    child_part_id,
+    relationship_type,
+    relationship_source,
+    source_sheet,
+    source_row_number
+);
+GO
+
 CREATE INDEX IX_domain_synonyms_term
 ON dbo.domain_synonyms(term);
 GO
 
-CREATE INDEX IX_item_aliases_alias_text
-ON dbo.item_aliases(alias_text);
+CREATE INDEX IX_domain_synonyms_canonical_term
+ON dbo.domain_synonyms(canonical_term);
+GO
+
+CREATE UNIQUE INDEX UX_item_aliases_part_alias
+ON dbo.item_aliases(part_id, alias_text)
+WHERE part_id IS NOT NULL;
+GO
+
+CREATE UNIQUE INDEX UX_item_aliases_pricebook_item_alias
+ON dbo.item_aliases(pricebook_item_id, alias_text)
+WHERE pricebook_item_id IS NOT NULL;
+GO
+
+INSERT INTO dbo.attribute_definitions (
+    attribute_name,
+    display_name,
+    unit_hint
+)
+VALUES
+    ('overshot_od', 'Overshot OD', 'inch'),
+    ('size', 'Size', NULL),
+    ('total_length', 'Total Length', 'inch'),
+    ('diameter_largest_wicker', 'Diameter of Largest Wicker', 'inch'),
+    ('diameter_smallest_wicker', 'Diameter of Smallest Wicker', 'inch'),
+    ('catch_size', 'Catch Size', 'inch'),
+    ('nominal_size_or_catch_size', 'Nominal Size or Catch Size', 'inch'),
+    ('assembly_dressed_to_packoff', 'Assembly Dressed to Packoff', NULL),
+    ('shoe_od', 'Shoe OD', 'inch'),
+    ('hole_size', 'Hole Size', 'inch'),
+    ('inside_diameter', 'Inside Diameter', 'inch');
 GO
 
 /*
