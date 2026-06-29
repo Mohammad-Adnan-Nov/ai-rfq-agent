@@ -186,3 +186,63 @@ Do not run the SQL DDL yet.
 Next step:
 
 Run a connection preflight against `.\SQLEXPRESS`, then create a local development database.
+
+## SQL Server Connection Preflight Result
+
+Command:
+
+```powershell
+sqlcmd -S ".\SQLEXPRESS" -E -Q "SELECT @@SERVERNAME AS server_name, @@SERVICENAME AS service_name;"
+sqlcmd -S ".\SQLEXPRESS" -E -Q "SELECT name FROM sys.databases ORDER BY name;"
+```
+
+Observed result:
+
+```text
+server_name: 5CD5196NXP\SQLEXPRESS
+service_name: SQLEXPRESS
+
+Existing databases before project database creation:
+master
+model
+msdb
+tempdb
+```
+
+Interpretation:
+
+Connection to local SQL Server Express works.
+
+Windows authentication works.
+
+The SQL Server instance name is:
+
+```text
+.\SQLEXPRESS
+```
+
+No project database existed before creation.
+
+---
+
+## Local Development Database
+
+Selected local development database:
+
+```text
+AI_RFQ_AGENT_DEV
+```
+
+Reason:
+
+This database is dedicated to the AI RFQ Agent local test environment.
+
+The Phase 1 DDL should be tested here before any NOV development, staging, or production SQL Server environment.
+
+Current execution decision:
+
+```text
+Run DDL only in AI_RFQ_AGENT_DEV first.
+Do not run DDL in production.
+```
+
