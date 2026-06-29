@@ -208,7 +208,7 @@ def build_data_sheet_preview(
         required_columns_present=required_columns_present,
         required_columns_missing=required_columns_missing,
         important_column_non_empty_counts=important_column_non_empty_counts,
-        preview_rows=preview_rows,
+        preview_rows=preview_rows, # type: ignore
     )
 
 
