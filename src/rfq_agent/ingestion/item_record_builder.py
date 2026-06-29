@@ -270,7 +270,7 @@ def build_item_records_outputs(
         invalid_reason_counts=invalid_reason_counts,
         output_csv_path=str(output_csv_path),
         quality_report_path=str(quality_report_path),
-        sample_records=sample_records,
+        sample_records=sample_records, # type: ignore
     )
 
     quality_report_path.write_text(
